@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-def detect_edges(frame, minVal, maxVal):
+def prep_image(frame):
 	
 	result = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -10,6 +10,11 @@ def detect_edges(frame, minVal, maxVal):
 	result = cv2.GaussianBlur(result,(5,5),0)
 	# use Gaussian or bilaterak filter for smoothing the image 
 	# Gaussian is faster, but it doesn't preserve edges as well as bilateral
+	return result
+
+def detect_edges(frame, minVal, maxVal):
+	
+	result = prep_image(frame)
 
 	result = cv2.Canny(result,minVal,maxVal)
 	# edges below minVal are rejected,
@@ -17,6 +22,32 @@ def detect_edges(frame, minVal, maxVal):
 	# and the ones are between are added only if they're adjusted to strong adges
 	return result
 
+def process_image(cap):
+
+	fgbg = cv2.createBackgroundSubtractorMOG2()
+	count = 0
+	while (True):
+
+		ret, orig_frame = cap.read()
+		if ret == 0:
+			return None
+
+		# skip first 60 frames to make sure nothing is moving  
+		if count < 60:
+			count += 1
+			continue
+		
+		frame = prep_image(orig_frame)
+		fgmask = fgbg.apply(frame)
+		
+		# diff to see that nothing has been moving 
+		retval = cv2.countNonZero(fgmask)
+
+		if retval == 0:
+			return orig_frame
+
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
 
 def process_stream(cap):
 	
@@ -62,7 +93,9 @@ def main():
 	if cap == None:
 		return 
 
-	process_stream(cap)
+	background = process_image(cap)
+	cv2.imwrite("background.jpg", background)
+	#process_stream(cap)
 
 	# When everything done, release the capture
 	cap.release()
