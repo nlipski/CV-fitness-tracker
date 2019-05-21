@@ -45,7 +45,7 @@ def process_image(cap):
 		retval = cv2.countNonZero(fgmask)
 
 		if retval == 0:
-			return frame
+			return orig_frame
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
@@ -69,8 +69,8 @@ def process_stream(cap, background):
 			minVal = maxVal
 
 		#ret, thresh = cv2.threshold(fgmask, minVal, maxVal, 0)
-		frame = prep_image(frame)
 		frame = background_extraction(frame, background,thresh)
+		frame = prep_image(frame)
 		edges = detect_edges(frame, minVal, maxVal)
 
 		cv2.imshow('edges', edges)
