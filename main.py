@@ -36,7 +36,7 @@ def process_image(cap):
 		if count < 60:
 			count += 1
 			continue
-		
+
 		frame = prep_image(orig_frame)
 		fgmask = fgbg.apply(frame)
 		
@@ -86,6 +86,11 @@ def capture_init(width, height):
 
 	return cap
 
+def capture_finit(cap):
+	# When everything done, release the capture
+	cap.release()
+	cv2.destroyAllWindows()
+
 def main():
 	
 	cap = capture_init(640,480)
@@ -96,10 +101,8 @@ def main():
 	background = process_image(cap)
 	cv2.imwrite("background.jpg", background)
 	#process_stream(cap)
+	capture_finit(cap)
 
-	# When everything done, release the capture
-	cap.release()
-	cv2.destroyAllWindows()
 
 if __name__ == "__main__":
 	
