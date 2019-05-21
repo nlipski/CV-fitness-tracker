@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
+def nothing(x):
+		pass
+
 def prep_image(frame):
 	
 	result = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -13,10 +16,8 @@ def prep_image(frame):
 	return result
 
 def detect_edges(frame, minVal, maxVal):
-	
-	result = prep_image(frame)
 
-	result = cv2.Canny(result,minVal,maxVal)
+	result = cv2.Canny(frame,minVal,maxVal)
 	# edges below minVal are rejected,
 	# the ones above maxVal are added, 
 	# and the ones are between are added only if they're adjusted to strong adges
@@ -44,17 +45,17 @@ def process_image(cap):
 		retval = cv2.countNonZero(fgmask)
 
 		if retval == 0:
-			return orig_frame
+			return frame
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
 
-def process_stream(cap):
+def process_stream(cap, background):
 	
 	cv2.namedWindow('edges')
 	cv2.createTrackbar('maxVal','edges',0,255, nothing)
 	cv2.createTrackbar('minVal','edges',0,255, nothing)
-
+	cv2.createTrackbar('thresh','edges',0,255, nothing)
 	while(True):
 
 		ret,frame = cap.read()
@@ -63,18 +64,26 @@ def process_stream(cap):
 
 		maxVal = cv2.getTrackbarPos('maxVal','edges')
 		minVal = cv2.getTrackbarPos('minVal','edges')
-		
+		thresh = cv2.getTrackbarPos('thresh','edges')
 		if maxVal <  minVal:
 			minVal = maxVal
 
 		#ret, thresh = cv2.threshold(fgmask, minVal, maxVal, 0)
-
+		frame = prep_image(frame)
+		frame = background_extraction(frame, background,thresh)
 		edges = detect_edges(frame, minVal, maxVal)
 
 		cv2.imshow('edges', edges)
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
+
+def background_extraction(frame, background, thresh):
+	
+	result = cv2.absdiff(frame, background)
+	ret,result = cv2.threshold(result,thresh,255,cv2.THRESH_BINARY)
+	return result 
+
 
 def capture_init(width, height):
 	
@@ -100,7 +109,7 @@ def main():
 
 	background = process_image(cap)
 	cv2.imwrite("background.jpg", background)
-	#process_stream(cap)
+	process_stream(cap, background)
 	capture_finit(cap)
 
 
