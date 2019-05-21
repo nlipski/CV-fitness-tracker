@@ -2,9 +2,6 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-def nothing(x):
-    pass
-
 def detect_edges(frame, minVal, maxVal):
 	
 	result = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -21,12 +18,8 @@ def detect_edges(frame, minVal, maxVal):
 	return result
 
 
-def main():
-
-	cap = cv2.VideoCapture(0)
+def process_stream(cap):
 	
-	cap.set(3,640) #width=640
-	cap.set(4,480) #height=480
 	cv2.namedWindow('edges')
 	cv2.createTrackbar('maxVal','edges',0,255, nothing)
 	cv2.createTrackbar('minVal','edges',0,255, nothing)
@@ -48,20 +41,36 @@ def main():
 		edges = detect_edges(frame, minVal, maxVal)
 
 		cv2.imshow('edges', edges)
-		plt.imshow('edges_plot', edges)
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
+
+def capture_init(width, height):
+	
+	cap = cv2.VideoCapture(0)
+	if cap == None:
+		return 
+	cap.set(3,width) #width=640
+	cap.set(4,height) #height=480
+
+	return cap
+
+def main():
+	
+	cap = capture_init(640,480)
+
+	if cap == None:
+		return 
+
+	process_stream(cap)
 
 	# When everything done, release the capture
 	cap.release()
 	cv2.destroyAllWindows()
 
-
 if __name__ == "__main__":
+	
 	try:
 		main()
 	except:
-        #print_time_report()
-        #finish_noise(error = True)
 		raise()
