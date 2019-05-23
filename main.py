@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+from skimage.measure import compare_ssim
 
 def nothing(x):
 		pass
@@ -17,6 +18,7 @@ def prep_image(frame):
 
 def detect_edges(frame, minVal, maxVal):
 
+	frame = cv2.medianBlur(frame,5)
 	result = cv2.Canny(frame,minVal,maxVal)
 	# edges below minVal are rejected,
 	# the ones above maxVal are added, 
@@ -53,8 +55,8 @@ def process_image(cap):
 def process_stream(cap, background):
 	
 	cv2.namedWindow('edges')
-	cv2.createTrackbar('maxVal','edges',0,255, nothing)
-	cv2.createTrackbar('minVal','edges',0,255, nothing)
+	cv2.createTrackbar('maxVal','edges',150,255, nothing)
+	cv2.createTrackbar('minVal','edges',50,255, nothing)
 	cv2.createTrackbar('thresh','edges',0,255, nothing)
 	while(True):
 
@@ -68,9 +70,7 @@ def process_stream(cap, background):
 		if maxVal <  minVal:
 			minVal = maxVal
 
-		#ret, thresh = cv2.threshold(fgmask, minVal, maxVal, 0)
 		frame = background_extraction(frame, background,thresh)
-		frame = prep_image(frame)
 		edges = detect_edges(frame, minVal, maxVal)
 
 		cv2.imshow('edges', edges)
@@ -79,15 +79,20 @@ def process_stream(cap, background):
 			break
 
 def background_extraction(frame, background, thresh):
-	
-	result = cv2.absdiff(frame, background)
-	ret,result = cv2.threshold(result,thresh,255,cv2.THRESH_BINARY)
-	return result 
+	frame = prep_image(frame)
+	background = prep_image(background)
+
+	ret, result = compare_ssim(frame, background, full=True)
+	result = (result * 255).astype("uint8")
+
+	ret,thresh_img = cv2.threshold(result, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+
+	return thresh_img 
 
 
 def capture_init(width, height):
 	
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(1)
 	if cap == None:
 		return 
 	cap.set(3,width) #width=640
