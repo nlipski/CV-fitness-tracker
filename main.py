@@ -44,7 +44,7 @@ def process_image(cap):
 	fgbg = cv2.createBackgroundSubtractorMOG2()
 	count = 0
 
-	rawCapture = PiRGBArray(camera, size=(WIDTH, HEIGHT))
+	rawCapture = PiRGBArray(cap, size=(WIDTH, HEIGHT))
 	# Let camera warm up
 	time.sleep(0.1)
 
@@ -84,7 +84,7 @@ def process_stream(cap, background):
 	
 	kernel = np.ones((2,2),np.uint8)
 
-	rawCapture = PiRGBArray(camera, size=(WIDTH, HEIGHT))
+	rawCapture = PiRGBArray(cap, size=(WIDTH, HEIGHT))
 	# Let camera warm up
 	time.sleep(0.1)
 
