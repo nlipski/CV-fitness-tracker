@@ -52,7 +52,7 @@ def process_image(cap):
 	print("Beginning to take background image")
 	for frame in cap.capture_continuous(stream, format="bgr", use_video_port=True):
 
-		orig_frame = np.fromstring(frame, dtype=np.uint8)
+		orig_frame = np.fromstring(frame.getvalue(), dtype=np.uint8)
 		if orig_frame.any() == False:
 			return None
 
@@ -94,7 +94,7 @@ def process_stream(cap, background):
 
 	for frame in cap.capture_continuous(stream, format="bgr", use_video_port=True):
 
-		orig_frame = np.fromstring(frame, dtype=np.uint8)
+		orig_frame = np.fromstring(frame.getvalue(), dtype=np.uint8)
 		if orig_frame.any() == False:
 			break
 
