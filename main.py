@@ -151,8 +151,7 @@ def capture_init():
 
 	camera = PiCamera()
 	if camera == None:
-		return
-	camera.capture_continuous(rawCapture, format="bgr", use_video_port=True)
+		return None
 	camera.resolution = (WIDTH, HEIGHT)
 	camera.framerate = FRAMERATE
 
