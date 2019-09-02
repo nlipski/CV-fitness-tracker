@@ -52,7 +52,7 @@ def process_image(cap):
 	for frame in cap.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 
 		orig_frame = frame.array
-		if orig_frame == None:
+		if orig_frame.any() == False:
 			return None
 
 		# skip first 60 frames to make sure nothing is moving  
@@ -93,7 +93,7 @@ def process_stream(cap, background):
 	for frame in cap.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 
 		orig_frame = frame.array
-		if orig_frame == None:
+		if orig_frame.any() == False:
 			break
 
 		maxVal = cv2.getTrackbarPos('maxVal','edges')
