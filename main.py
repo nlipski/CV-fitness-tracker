@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from skimage.measure import compare_ssim
 
 import time
+import io
 
 # Raspberry Pi Camera packages
 from picamera.array import PiRGBArray
@@ -44,12 +45,12 @@ def process_image(cap):
 	fgbg = cv2.createBackgroundSubtractorMOG2()
 	count = 0
 
-	rawCapture = PiRGBArray(cap, size=(WIDTH, HEIGHT))
+	stream = io.BytesIO()
 	# Let camera warm up
 	time.sleep(0.1)
 
 	print("Beginning to take background image")
-	for frame in cap.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+	for frame in cap.capture_continuous(stream, format="bgr", use_video_port=True):
 
 		orig_frame = frame.array
 		if orig_frame.any() == False:
@@ -63,7 +64,8 @@ def process_image(cap):
 		mod_frame = prep_image(orig_frame)
 		fgmask = fgbg.apply(mod_frame)
 		
-		rawCapture.truncate(0)
+		stream.truncate()
+		stream.seek(0)
 
 		# diff to see that nothing has been moving  
 		if (cv2.countNonZero(fgmask)) == 0:
@@ -84,13 +86,13 @@ def process_stream(cap, background):
 	
 	kernel = np.ones((2,2),np.uint8)
 
-	rawCapture = PiRGBArray(cap, size=(WIDTH, HEIGHT))
+	stream = io.BytesIO()
 	# Let camera warm up
 	time.sleep(0.1)
 
 	print("Beginning to capture the stream")
 
-	for frame in cap.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+	for frame in cap.capture_continuous(stream, format="bgr", use_video_port=True):
 
 		orig_frame = frame.array
 		if orig_frame.any() == False:
@@ -130,7 +132,10 @@ def process_stream(cap, background):
 		cv2.imshow('result', result)
 		cv2.imshow('extracted', closing)
 
-		rawCapture.truncate(0)
+		stream.truncate()
+		stream.seek(0)
+		if process(stream):
+			break
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
@@ -159,7 +164,6 @@ def capture_init():
 
 def capture_finit(cap):
 	# When everything done, release the capture
-	cap.release()
 	cv2.destroyAllWindows()
 
 def main():
